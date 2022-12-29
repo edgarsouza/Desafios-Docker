@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+
+  app-node:
+    build:
+      context: node
+    container_name: app-node
+    networks:
+      - network-node
+    volumes:
+      - ./node:/usr/src/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db-node
+
+  db-node:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: db-node
+    restart: always
+    tty: true
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - network-node
+
+  nginx-node:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: edgarsouza/nginx-desafio
+    container_name: nginx-desafio
+    networks:
+      - network-node
+    ports:
+      - "8080:80"
+    depends_on:
+      - db-node
+
+networks:
+  network-node:
+    driver: bridge
